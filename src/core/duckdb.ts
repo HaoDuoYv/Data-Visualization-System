@@ -1,5 +1,6 @@
 // src/core/duckdb.ts
 import * as duckdb from '@duckdb/duckdb-wasm';
+import type { QueryResult } from '@/types';
 
 export class DuckDBManager {
   private db: duckdb.AsyncDuckDB | null = null;
@@ -10,6 +11,11 @@ export class DuckDBManager {
    * 使用 CDN 加载 WASM 文件
    */
   async initialize(): Promise<void> {
+    if (this.isInitialized()) {
+      console.warn('DuckDB already initialized, skipping');
+      return;
+    }
+
     try {
       // 选择 WASM 配置（支持 MVP 和 EH 两种版本）
       const DUCKDB_CONFIG = duckdb.selectBundle({
@@ -23,13 +29,18 @@ export class DuckDBManager {
         },
       });
 
+      // 检查 WASM 配置是否完整
+      if (!DUCKDB_CONFIG.mainWorker || !DUCKDB_CONFIG.mainModule) {
+        throw new Error('No compatible DuckDB WASM bundle found for this environment');
+      }
+
       // 创建 Worker
-      const worker = new Worker(DUCKDB_CONFIG.mainWorker!);
+      const worker = new Worker(DUCKDB_CONFIG.mainWorker);
 
       // 初始化 DuckDB 实例
       const logger = new duckdb.ConsoleLogger();
       this.db = new duckdb.AsyncDuckDB(logger, worker);
-      await this.db.instantiate(DUCKDB_CONFIG.mainModule!);
+      await this.db.instantiate(DUCKDB_CONFIG.mainModule);
 
       // 获取数据库连接
       this.conn = await this.db.connect();
@@ -46,7 +57,7 @@ export class DuckDBManager {
    * @param sql SQL 查询语句
    * @returns 查询结果数组
    */
-  async query(sql: string): Promise<any[]> {
+  async query(sql: string): Promise<QueryResult[]> {
     if (!this.conn) {
       throw new Error('Database not initialized. Call initialize() first.');
     }
