@@ -1,10 +1,12 @@
-import './assets/main.css'
-
+// src/main.ts
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 
 import App from './App.vue'
 import router from './router'
+
+// 导入 Tailwind CSS
+import './assets/main.css'
 
 const app = createApp(App)
 
