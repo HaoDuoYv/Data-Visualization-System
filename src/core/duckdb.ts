@@ -20,12 +20,12 @@ export class DuckDBManager {
       // 选择 WASM 配置（支持 MVP 和 EH 两种版本）
       const DUCKDB_CONFIG = duckdb.selectBundle({
         mvp: {
-          mainModule: 'https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@latest/dist/duckdb-mvp.wasm',
-          mainWorker: 'https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@latest/dist/duckdb-browser-mvp.worker.js',
+          mainModule: 'https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@1.33.1/dist/duckdb-mvp.wasm',
+          mainWorker: 'https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@1.33.1/dist/duckdb-browser-mvp.worker.js',
         },
         eh: {
-          mainModule: 'https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@latest/dist/duckdb-eh.wasm',
-          mainWorker: 'https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@latest/dist/duckdb-browser-eh.worker.js',
+          mainModule: 'https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@1.33.1/dist/duckdb-eh.wasm',
+          mainWorker: 'https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@1.33.1/dist/duckdb-browser-eh.worker.js',
         },
       });
 
@@ -47,6 +47,11 @@ export class DuckDBManager {
 
       console.log('DuckDB initialized successfully');
     } catch (error) {
+      // 清理部分初始化的资源
+      if (this.db) {
+        try { await this.db.terminate(); } catch (_) {}
+        this.db = null;
+      }
       console.error('Failed to initialize DuckDB:', error);
       throw error;
     }
