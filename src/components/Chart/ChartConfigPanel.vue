@@ -38,7 +38,7 @@
     <!-- X 轴选择 -->
     <div class="mb-4">
       <label class="block text-sm font-medium text-gray-600 mb-2">
-        {{ chartConfig.type === 'pie' ? '标签列' : 'X 轴' }}
+        {{ ['pie', 'funnel', 'radar'].includes(chartConfig.type) ? '标签列' : chartConfig.type === 'heatmap' ? 'X 维度' : 'X 轴' }}
       </label>
       <select
         v-model="chartConfig.xAxisColumn"
@@ -61,7 +61,7 @@
     <!-- Y 轴选择 -->
     <div class="mb-4">
       <label class="block text-sm font-medium text-gray-600 mb-2">
-        {{ chartConfig.type === 'pie' ? '数值列' : 'Y 轴' }}
+        {{ ['pie', 'funnel', 'gauge'].includes(chartConfig.type) ? '数值列' : chartConfig.type === 'heatmap' ? 'Y 维度' : 'Y 轴' }}
       </label>
       <select
         v-model="chartConfig.yAxisColumn"
@@ -81,8 +81,8 @@
       </select>
     </div>
 
-    <!-- 分系列列选择（仅柱状图/折线图） -->
-    <div v-if="chartConfig.type === 'bar' || chartConfig.type === 'line'" class="mb-4">
+    <!-- 分系列列选择（柱状图/折线图/面积图/雷达图/热力图） -->
+    <div v-if="['bar', 'line', 'area', 'radar', 'heatmap'].includes(chartConfig.type)" class="mb-4">
       <label class="block text-sm font-medium text-gray-600 mb-2">分系列（可选）</label>
       <select
         v-model="selectedSeriesColumn"
@@ -128,8 +128,13 @@ watch(() => chartConfig.value.seriesColumn, (newCol) => {
 const chartTypes = [
   { value: 'bar' as const, label: '柱状图' },
   { value: 'line' as const, label: '折线图' },
+  { value: 'area' as const, label: '面积图' },
   { value: 'pie' as const, label: '饼图' },
   { value: 'scatter' as const, label: '散点图' },
+  { value: 'radar' as const, label: '雷达图' },
+  { value: 'funnel' as const, label: '漏斗图' },
+  { value: 'gauge' as const, label: '仪表盘' },
+  { value: 'heatmap' as const, label: '热力图' },
 ];
 
 function getTypeLabel(type: string): string {

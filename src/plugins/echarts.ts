@@ -1,7 +1,7 @@
 // src/plugins/echarts.ts
 import { use } from 'echarts/core';
 import { CanvasRenderer } from 'echarts/renderers';
-import { BarChart, LineChart, PieChart, ScatterChart } from 'echarts/charts';
+import { BarChart, LineChart, PieChart, ScatterChart, RadarChart, FunnelChart, GaugeChart, HeatmapChart } from 'echarts/charts';
 import {
   GridComponent,
   TooltipComponent,
@@ -10,6 +10,8 @@ import {
   DatasetComponent,
   ToolboxComponent,
   DataZoomComponent,
+  RadarComponent,
+  VisualMapComponent,
 } from 'echarts/components';
 
 use([
@@ -18,6 +20,10 @@ use([
   LineChart,
   PieChart,
   ScatterChart,
+  RadarChart,
+  FunnelChart,
+  GaugeChart,
+  HeatmapChart,
   GridComponent,
   TooltipComponent,
   TitleComponent,
@@ -25,4 +31,6 @@ use([
   DatasetComponent,
   ToolboxComponent,
   DataZoomComponent,
+  RadarComponent,
+  VisualMapComponent,
 ]);

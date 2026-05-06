@@ -1,6 +1,6 @@
 // src/types/chart.ts
 
-export type ChartType = 'bar' | 'line' | 'pie' | 'scatter';
+export type ChartType = 'bar' | 'line' | 'area' | 'pie' | 'scatter' | 'radar' | 'funnel' | 'gauge' | 'heatmap';
 
 export type ColorTheme = 'default' | 'cool' | 'warm' | 'pastel' | 'dark' | 'earth';
 
