@@ -47,6 +47,48 @@ export function useDuckDB() {
   }
 
   /**
+   * 从 CSV 内容创建表
+   * @param tableName 表名
+   * @param csvContent CSV 内容字符串
+   * @returns 表信息，失败时返回 null
+   */
+  async function createTableFromCSV(tableName: string, csvContent: string) {
+    try {
+      isLoading.value = true;
+      error.value = null;
+      const result = await dbManager.createTableFromCSV(tableName, csvContent);
+      return result;
+    } catch (e) {
+      error.value = (e as Error).message;
+      console.error('CSV import error:', e);
+      return null;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  /**
+   * 获取表的预览数据
+   * @param tableName 表名
+   * @param limit 限制行数
+   * @returns 预览数据，失败时返回 null
+   */
+  async function getTablePreview(tableName: string, limit: number = 10) {
+    try {
+      isLoading.value = true;
+      error.value = null;
+      const result = await dbManager.getTablePreview(tableName, limit);
+      return result;
+    } catch (e) {
+      error.value = (e as Error).message;
+      console.error('Table preview error:', e);
+      return null;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  /**
    * 关闭数据库连接
    */
   async function close() {
@@ -68,5 +110,7 @@ export function useDuckDB() {
     initialize,
     query,
     close,
+    createTableFromCSV,
+    getTablePreview,
   };
 }
