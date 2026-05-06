@@ -2,6 +2,9 @@
 import * as duckdb from '@duckdb/duckdb-wasm';
 import type { QueryResult } from '@/types';
 
+const DUCKDB_WASM_VERSION = '1.33.1';
+const CDN_BASE = `https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@${DUCKDB_WASM_VERSION}/dist`;
+
 export class DuckDBManager {
   private db: duckdb.AsyncDuckDB | null = null;
   private conn: duckdb.AsyncDuckDBConnection | null = null;
@@ -20,12 +23,12 @@ export class DuckDBManager {
       // 选择 WASM 配置（支持 MVP 和 EH 两种版本）
       const DUCKDB_CONFIG = await duckdb.selectBundle({
         mvp: {
-          mainModule: 'https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@1.33.1/dist/duckdb-mvp.wasm',
-          mainWorker: 'https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@1.33.1/dist/duckdb-browser-mvp.worker.js',
+          mainModule: `${CDN_BASE}/duckdb-mvp.wasm`,
+          mainWorker: `${CDN_BASE}/duckdb-browser-mvp.worker.js`,
         },
         eh: {
-          mainModule: 'https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@1.33.1/dist/duckdb-eh.wasm',
-          mainWorker: 'https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@1.33.1/dist/duckdb-browser-eh.worker.js',
+          mainModule: `${CDN_BASE}/duckdb-eh.wasm`,
+          mainWorker: `${CDN_BASE}/duckdb-browser-eh.worker.js`,
         },
       });
 
@@ -48,6 +51,10 @@ export class DuckDBManager {
       console.log('DuckDB initialized successfully');
     } catch (error) {
       // 清理部分初始化的资源
+      if (this.conn) {
+        try { await this.conn.close(); } catch (_) {}
+        this.conn = null;
+      }
       if (this.db) {
         try { await this.db.terminate(); } catch (_) {}
         this.db = null;
@@ -87,9 +94,15 @@ export class DuckDBManager {
     rowCount: number;
     columns: { name: string; type: string }[];
   }> {
+    if (!csvContent || csvContent.trim().length === 0) {
+      throw new Error('CSV content cannot be empty');
+    }
+
     if (!this.conn) {
       throw new Error('Database not initialized. Call initialize() first.');
     }
+
+    const escapedTableName = this.validateTableName(tableName);
 
     try {
       // 将 CSV 内容写入临时文件
@@ -97,18 +110,18 @@ export class DuckDBManager {
 
       // 创建表
       await this.conn.query(`
-        CREATE TABLE ${tableName} AS
+        CREATE TABLE ${escapedTableName} AS
         SELECT * FROM read_csv('${tableName}.csv', auto_detect=true)
       `);
 
       // 获取表信息
       const rowCountResult = await this.conn.query(
-        `SELECT COUNT(*) as count FROM ${tableName}`
+        `SELECT COUNT(*) as count FROM ${escapedTableName}`
       );
       const rowCount = Number(rowCountResult.toArray()[0].toJSON().count);
 
       const columnsResult = await this.conn.query(
-        `DESCRIBE ${tableName}`
+        `DESCRIBE ${escapedTableName}`
       );
       const columns = columnsResult.toArray().map(row => {
         const json = row.toJSON();
@@ -128,20 +141,38 @@ export class DuckDBManager {
    * @param limit 限制行数
    * @returns 预览数据
    */
-  async getTablePreview(tableName: string, limit: number = 10): Promise<any[]> {
+  async getTablePreview(tableName: string, limit: number = 10): Promise<QueryResult[]> {
+    if (!Number.isInteger(limit) || limit <= 0 || limit > 10000) {
+      throw new Error(`Invalid limit: ${limit}. Must be a positive integer between 1 and 10000.`);
+    }
+
     if (!this.conn) {
       throw new Error('Database not initialized. Call initialize() first.');
     }
 
+    const escapedTableName = this.validateTableName(tableName);
+
     try {
       const result = await this.conn.query(
-        `SELECT * FROM ${tableName} LIMIT ${limit}`
+        `SELECT * FROM ${escapedTableName} LIMIT ${limit}`
       );
       return result.toArray().map(row => row.toJSON());
     } catch (error) {
       console.error('Failed to get table preview:', error);
       throw error;
     }
+  }
+
+  /**
+   * 验证并转义表名
+   * @param name 表名
+   * @returns 转义后的表名
+   */
+  private validateTableName(name: string): string {
+    if (!name || !/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
+      throw new Error(`Invalid table name: "${name}"`);
+    }
+    return `"${name}"`;
   }
 
   /**
