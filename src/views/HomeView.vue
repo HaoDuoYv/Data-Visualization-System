@@ -38,6 +38,11 @@
 
       <!-- SQL 编辑器和结果 -->
       <div v-if="isInitialized" class="space-y-6">
+        <!-- 数据导入 -->
+        <FileUploader @imported="handleImported" />
+        <DataPreview />
+
+        <!-- SQL 编辑器 -->
         <SQLEditor />
         <QueryResults />
       </div>
@@ -55,6 +60,8 @@ import { computed, onMounted } from 'vue';
 import { useDuckDB } from '@/composables/useDuckDB';
 import SQLEditor from '@/components/SQL/SQLEditor.vue';
 import QueryResults from '@/components/Results/QueryResults.vue';
+import FileUploader from '@/components/DataImport/FileUploader.vue';
+import DataPreview from '@/components/DataImport/DataPreview.vue';
 
 const { isInitialized, isLoading, error, initialize } = useDuckDB();
 
@@ -66,6 +73,10 @@ const statusClass = computed(() => {
 
 async function initializeDB() {
   await initialize();
+}
+
+function handleImported(tableName: string) {
+  console.log('Table imported:', tableName);
 }
 
 // 页面加载时自动初始化

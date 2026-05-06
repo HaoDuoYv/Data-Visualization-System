@@ -58,6 +58,7 @@ const resultCount = computed(() => store.resultCount);
 
 function formatValue(value: any): string {
   if (value === null || value === undefined) return 'NULL';
+  if (typeof value === 'bigint') return value.toString();
   if (typeof value === 'object') return JSON.stringify(value);
   return String(value);
 }

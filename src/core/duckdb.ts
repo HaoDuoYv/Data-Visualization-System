@@ -2,16 +2,30 @@
 import * as duckdb from '@duckdb/duckdb-wasm';
 import type { QueryResult } from '@/types';
 
-const DUCKDB_WASM_VERSION = '1.33.1';
-const CDN_BASE = `https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@${DUCKDB_WASM_VERSION}/dist`;
-
 export class DuckDBManager {
   private db: duckdb.AsyncDuckDB | null = null;
   private conn: duckdb.AsyncDuckDBConnection | null = null;
 
   /**
+   * 将 BigInt 转换为 Number
+   */
+  private convertBigInt(obj: any): any {
+    if (obj === null || obj === undefined) return obj;
+    if (typeof obj === 'bigint') return Number(obj);
+    if (Array.isArray(obj)) return obj.map(item => this.convertBigInt(item));
+    if (typeof obj === 'object') {
+      const result: any = {};
+      for (const key in obj) {
+        result[key] = this.convertBigInt(obj[key]);
+      }
+      return result;
+    }
+    return obj;
+  }
+
+  /**
    * 初始化 DuckDB 数据库
-   * 使用 CDN 加载 WASM 文件
+   * 使用本地 WASM 文件
    */
   async initialize(): Promise<void> {
     if (this.isInitialized()) {
@@ -20,30 +34,17 @@ export class DuckDBManager {
     }
 
     try {
-      // 选择 WASM 配置（支持 MVP 和 EH 两种版本）
-      const DUCKDB_CONFIG = await duckdb.selectBundle({
-        mvp: {
-          mainModule: `${CDN_BASE}/duckdb-mvp.wasm`,
-          mainWorker: `${CDN_BASE}/duckdb-browser-mvp.worker.js`,
-        },
-        eh: {
-          mainModule: `${CDN_BASE}/duckdb-eh.wasm`,
-          mainWorker: `${CDN_BASE}/duckdb-browser-eh.worker.js`,
-        },
-      });
-
-      // 检查 WASM 配置是否完整
-      if (!DUCKDB_CONFIG.mainWorker || !DUCKDB_CONFIG.mainModule) {
-        throw new Error('No compatible DuckDB WASM bundle found for this environment');
-      }
+      // 直接使用本地文件路径，不使用 selectBundle
+      const mainModule = '/duckdb/duckdb-eh.wasm';
+      const mainWorker = '/duckdb/duckdb-browser-eh.worker.js';
 
       // 创建 Worker
-      const worker = new Worker(DUCKDB_CONFIG.mainWorker);
+      const worker = new Worker(mainWorker);
 
       // 初始化 DuckDB 实例
       const logger = new duckdb.ConsoleLogger();
       this.db = new duckdb.AsyncDuckDB(logger, worker);
-      await this.db.instantiate(DUCKDB_CONFIG.mainModule);
+      await this.db.instantiate(mainModule);
 
       // 获取数据库连接
       this.conn = await this.db.connect();
@@ -77,7 +78,7 @@ export class DuckDBManager {
     try {
       const result = await this.conn.query(sql);
       // 将 Arrow 表转换为普通 JavaScript 数组
-      return result.toArray().map(row => row.toJSON());
+      return result.toArray().map(row => this.convertBigInt(row.toJSON()));
     } catch (error) {
       console.error('Query execution failed:', error);
       throw error;
@@ -156,7 +157,7 @@ export class DuckDBManager {
       const result = await this.conn.query(
         `SELECT * FROM ${escapedTableName} LIMIT ${limit}`
       );
-      return result.toArray().map(row => row.toJSON());
+      return result.toArray().map(row => this.convertBigInt(row.toJSON()));
     } catch (error) {
       console.error('Failed to get table preview:', error);
       throw error;
