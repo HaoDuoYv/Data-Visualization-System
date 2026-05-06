@@ -14,3 +14,7 @@ export interface DuckDBState {
   isLoading: boolean;
   error: string | null;
 }
+
+// 图表类型 re-export
+export type { ChartType, ChartConfig, ColumnMeta } from './chart';
+export { DEFAULT_CHART_CONFIG } from './chart';

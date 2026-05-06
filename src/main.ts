@@ -8,6 +8,9 @@ import router from './router'
 // 导入 Tailwind CSS
 import './assets/main.css'
 
+// 导入 ECharts 插件
+import './plugins/echarts'
+
 const app = createApp(App)
 
 app.use(createPinia())

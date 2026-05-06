@@ -1,7 +1,8 @@
 // src/stores/duckdb.ts
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import type { QueryResult } from '@/types';
+import type { QueryResult, ChartConfig, ColumnMeta } from '@/types';
+import { DEFAULT_CHART_CONFIG } from '@/types';
 
 export const useDuckDBStore = defineStore('duckdb', () => {
   // 状态
@@ -15,6 +16,9 @@ export const useDuckDBStore = defineStore('duckdb', () => {
   const previewTableName = ref<string>('');
   const previewRowCount = ref<number>(0);
 
+  // 图表配置状态
+  const chartConfig = ref<ChartConfig>({ ...DEFAULT_CHART_CONFIG });
+
   // 计算属性
   const columns = computed(() => {
     if (queryResults.value.length === 0) return [];
@@ -24,6 +28,32 @@ export const useDuckDBStore = defineStore('duckdb', () => {
   });
 
   const resultCount = computed(() => queryResults.value.length);
+
+  // 列类型推断
+  const columnMeta = computed<ColumnMeta[]>(() => {
+    if (queryResults.value.length === 0 || columns.value.length === 0) return [];
+    const sampleRows = queryResults.value.slice(0, 10);
+    return columns.value.map((col) => {
+      let type: ColumnMeta['type'] = 'unknown';
+      for (const row of sampleRows) {
+        const val = row[col];
+        if (val === null || val === undefined) continue;
+        if (typeof val === 'number') {
+          type = 'numeric';
+          break;
+        }
+        if (typeof val === 'string') {
+          if (/^\d{4}[-/]\d{1,2}[-/]\d{1,2}/.test(val)) {
+            type = 'date';
+          } else {
+            type = 'string';
+          }
+          break;
+        }
+      }
+      return { name: col, type };
+    });
+  });
 
   // 方法
   function addTable(name: string) {
@@ -49,6 +79,15 @@ export const useDuckDBStore = defineStore('duckdb', () => {
 
   function clearResults() {
     queryResults.value = [];
+    resetChartConfig();
+  }
+
+  function updateChartConfig(patch: Partial<ChartConfig>) {
+    chartConfig.value = { ...chartConfig.value, ...patch };
+  }
+
+  function resetChartConfig() {
+    chartConfig.value = { ...DEFAULT_CHART_CONFIG };
   }
 
   function setPreviewData(data: any[], columns: { name: string; type: string }[], tableName: string, rowCount: number) {
@@ -74,9 +113,11 @@ export const useDuckDBStore = defineStore('duckdb', () => {
     previewColumns,
     previewTableName,
     previewRowCount,
+    chartConfig,
     // 计算属性
     columns,
     resultCount,
+    columnMeta,
     // 方法
     addTable,
     removeTable,
@@ -85,5 +126,7 @@ export const useDuckDBStore = defineStore('duckdb', () => {
     clearResults,
     setPreviewData,
     clearPreviewData,
+    updateChartConfig,
+    resetChartConfig,
   };
 });

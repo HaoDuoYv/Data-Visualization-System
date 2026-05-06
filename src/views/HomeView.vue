@@ -45,6 +45,9 @@
         <!-- SQL 编辑器 -->
         <SQLEditor />
         <QueryResults />
+
+        <!-- 图表可视化 -->
+        <ChartPanel v-if="resultCount > 0" />
       </div>
 
       <!-- 未初始化时的提示 -->
@@ -58,10 +61,15 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue';
 import { useDuckDB } from '@/composables/useDuckDB';
+import { useDuckDBStore } from '@/stores/duckdb';
 import SQLEditor from '@/components/SQL/SQLEditor.vue';
 import QueryResults from '@/components/Results/QueryResults.vue';
 import FileUploader from '@/components/DataImport/FileUploader.vue';
 import DataPreview from '@/components/DataImport/DataPreview.vue';
+import ChartPanel from '@/components/Chart/ChartPanel.vue';
+
+const store = useDuckDBStore();
+const resultCount = computed(() => store.resultCount);
 
 const { isInitialized, isLoading, error, initialize } = useDuckDB();
 
