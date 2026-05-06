@@ -16,5 +16,27 @@ export interface DuckDBState {
 }
 
 // 图表类型 re-export
-export type { ChartType, ChartConfig, ColumnMeta } from './chart';
-export { DEFAULT_CHART_CONFIG } from './chart';
+export type {
+  ChartType,
+  ChartConfig,
+  ColumnMeta,
+  ColorTheme,
+  LegendPosition,
+  AxisStyle,
+  ChartCustomization,
+  FilterRule,
+  SortConfig,
+  AggregationType,
+  AggregationConfig,
+  DataTransform,
+} from './chart';
+export {
+  DEFAULT_CHART_CONFIG,
+  DEFAULT_CHART_CUSTOMIZATION,
+  DEFAULT_DATA_TRANSFORM,
+  COLOR_PALETTES,
+} from './chart';
+
+// 仪表盘类型 re-export
+export type { DashboardChart, DashboardLayout, Dashboard } from './dashboard';
+export { DEFAULT_DASHBOARD_LAYOUT } from './dashboard';

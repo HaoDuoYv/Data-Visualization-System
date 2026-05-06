@@ -1,7 +1,7 @@
 // src/stores/duckdb.ts
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import type { QueryResult, ChartConfig, ColumnMeta } from '@/types';
+import type { QueryResult, ChartConfig, ColumnMeta, ChartCustomization, DataTransform, FilterRule } from '@/types';
 import { DEFAULT_CHART_CONFIG } from '@/types';
 
 export const useDuckDBStore = defineStore('duckdb', () => {
@@ -90,6 +90,48 @@ export const useDuckDBStore = defineStore('duckdb', () => {
     chartConfig.value = { ...DEFAULT_CHART_CONFIG };
   }
 
+  function updateChartCustomization(patch: Partial<ChartCustomization>) {
+    chartConfig.value = {
+      ...chartConfig.value,
+      customization: { ...chartConfig.value.customization, ...patch },
+    };
+  }
+
+  function updateDataTransform(patch: Partial<DataTransform>) {
+    chartConfig.value = {
+      ...chartConfig.value,
+      dataTransform: { ...chartConfig.value.dataTransform, ...patch },
+    };
+  }
+
+  function addFilterRule(rule: FilterRule) {
+    chartConfig.value = {
+      ...chartConfig.value,
+      dataTransform: {
+        ...chartConfig.value.dataTransform,
+        filters: [...chartConfig.value.dataTransform.filters, rule],
+      },
+    };
+  }
+
+  function removeFilterRule(index: number) {
+    const filters = [...chartConfig.value.dataTransform.filters];
+    filters.splice(index, 1);
+    chartConfig.value = {
+      ...chartConfig.value,
+      dataTransform: { ...chartConfig.value.dataTransform, filters },
+    };
+  }
+
+  function updateFilterRule(index: number, rule: FilterRule) {
+    const filters = [...chartConfig.value.dataTransform.filters];
+    filters[index] = rule;
+    chartConfig.value = {
+      ...chartConfig.value,
+      dataTransform: { ...chartConfig.value.dataTransform, filters },
+    };
+  }
+
   function setPreviewData(data: any[], columns: { name: string; type: string }[], tableName: string, rowCount: number) {
     previewData.value = data;
     previewColumns.value = columns;
@@ -128,5 +170,10 @@ export const useDuckDBStore = defineStore('duckdb', () => {
     clearPreviewData,
     updateChartConfig,
     resetChartConfig,
+    updateChartCustomization,
+    updateDataTransform,
+    addFilterRule,
+    removeFilterRule,
+    updateFilterRule,
   };
 });

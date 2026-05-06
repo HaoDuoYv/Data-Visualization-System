@@ -101,12 +101,16 @@
         </option>
       </select>
     </div>
+
+    <!-- 图表定制 -->
+    <ChartCustomizer />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import { useChart } from '@/composables/useChart';
+import ChartCustomizer from './ChartCustomizer.vue';
 
 const { chartConfig, columnMeta, updateConfig } = useChart();
 
