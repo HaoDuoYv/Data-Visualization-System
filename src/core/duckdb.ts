@@ -78,6 +78,73 @@ export class DuckDBManager {
   }
 
   /**
+   * 从 CSV 内容创建表
+   * @param tableName 表名
+   * @param csvContent CSV 内容字符串
+   * @returns 表的行数和列信息
+   */
+  async createTableFromCSV(tableName: string, csvContent: string): Promise<{
+    rowCount: number;
+    columns: { name: string; type: string }[];
+  }> {
+    if (!this.conn) {
+      throw new Error('Database not initialized. Call initialize() first.');
+    }
+
+    try {
+      // 将 CSV 内容写入临时文件
+      await this.db.registerFileText(`${tableName}.csv`, csvContent);
+
+      // 创建表
+      await this.conn.query(`
+        CREATE TABLE ${tableName} AS
+        SELECT * FROM read_csv('${tableName}.csv', auto_detect=true)
+      `);
+
+      // 获取表信息
+      const rowCountResult = await this.conn.query(
+        `SELECT COUNT(*) as count FROM ${tableName}`
+      );
+      const rowCount = Number(rowCountResult.toArray()[0].toJSON().count);
+
+      const columnsResult = await this.conn.query(
+        `DESCRIBE ${tableName}`
+      );
+      const columns = columnsResult.toArray().map(row => {
+        const json = row.toJSON();
+        return { name: json.column_name, type: json.column_type };
+      });
+
+      return { rowCount, columns };
+    } catch (error) {
+      console.error('Failed to create table from CSV:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 获取表的预览数据
+   * @param tableName 表名
+   * @param limit 限制行数
+   * @returns 预览数据
+   */
+  async getTablePreview(tableName: string, limit: number = 10): Promise<any[]> {
+    if (!this.conn) {
+      throw new Error('Database not initialized. Call initialize() first.');
+    }
+
+    try {
+      const result = await this.conn.query(
+        `SELECT * FROM ${tableName} LIMIT ${limit}`
+      );
+      return result.toArray().map(row => row.toJSON());
+    } catch (error) {
+      console.error('Failed to get table preview:', error);
+      throw error;
+    }
+  }
+
+  /**
    * 关闭数据库连接
    */
   async close(): Promise<void> {
