@@ -12,7 +12,9 @@ export const useDuckDBStore = defineStore('duckdb', () => {
   // 计算属性
   const columns = computed(() => {
     if (queryResults.value.length === 0) return [];
-    return Object.keys(queryResults.value[0]);
+    const first = queryResults.value[0];
+    if (!first) return [];
+    return Object.keys(first);
   });
 
   const resultCount = computed(() => queryResults.value.length);

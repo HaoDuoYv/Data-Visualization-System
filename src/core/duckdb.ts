@@ -18,7 +18,7 @@ export class DuckDBManager {
 
     try {
       // 选择 WASM 配置（支持 MVP 和 EH 两种版本）
-      const DUCKDB_CONFIG = duckdb.selectBundle({
+      const DUCKDB_CONFIG = await duckdb.selectBundle({
         mvp: {
           mainModule: 'https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@1.33.1/dist/duckdb-mvp.wasm',
           mainWorker: 'https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@1.33.1/dist/duckdb-browser-mvp.worker.js',
