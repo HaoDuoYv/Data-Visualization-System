@@ -9,6 +9,12 @@ export const useDuckDBStore = defineStore('duckdb', () => {
   const queryResults = ref<QueryResult[]>([]);
   const currentQuery = ref('SELECT 1 AS test_column');
 
+  // 预览数据状态
+  const previewData = ref<any[]>([]);
+  const previewColumns = ref<{ name: string; type: string }[]>([]);
+  const previewTableName = ref<string>('');
+  const previewRowCount = ref<number>(0);
+
   // 计算属性
   const columns = computed(() => {
     if (queryResults.value.length === 0) return [];
@@ -45,11 +51,29 @@ export const useDuckDBStore = defineStore('duckdb', () => {
     queryResults.value = [];
   }
 
+  function setPreviewData(data: any[], columns: { name: string; type: string }[], tableName: string, rowCount: number) {
+    previewData.value = data;
+    previewColumns.value = columns;
+    previewTableName.value = tableName;
+    previewRowCount.value = rowCount;
+  }
+
+  function clearPreviewData() {
+    previewData.value = [];
+    previewColumns.value = [];
+    previewTableName.value = '';
+    previewRowCount.value = 0;
+  }
+
   return {
     // 状态
     tables,
     queryResults,
     currentQuery,
+    previewData,
+    previewColumns,
+    previewTableName,
+    previewRowCount,
     // 计算属性
     columns,
     resultCount,
@@ -59,5 +83,7 @@ export const useDuckDBStore = defineStore('duckdb', () => {
     setQueryResults,
     setCurrentQuery,
     clearResults,
+    setPreviewData,
+    clearPreviewData,
   };
 });
