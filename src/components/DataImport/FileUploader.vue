@@ -40,8 +40,8 @@
       导入中...
     </div>
 
-    <div v-if="importError" class="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
-      <p class="text-red-600 text-sm">{{ importError }}</p>
+    <div v-if="localError || importError" class="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
+      <p class="text-red-600 text-sm">{{ localError || importError }}</p>
     </div>
   </div>
 </template>
@@ -53,6 +53,9 @@ import { useDataImport } from '@/composables/useDataImport';
 const { isImporting, importError, importCSV } = useDataImport();
 
 const isDragging = ref(false);
+const localError = ref<string | null>(null);
+
+const displayError = ref<string | null>(null);
 
 const emit = defineEmits<{
   (e: 'imported', tableName: string): void;
@@ -62,21 +65,29 @@ async function handleDrop(event: DragEvent) {
   isDragging.value = false;
   const files = event.dataTransfer?.files;
   if (files && files.length > 0) {
-    await processFile(files[0]);
+    const file = files[0];
+    if (file) {
+      await processFile(file);
+    }
   }
 }
 
 async function handleFileSelect(event: Event) {
   const input = event.target as HTMLInputElement;
   if (input.files && input.files.length > 0) {
-    await processFile(input.files[0]);
-    input.value = '';
+    const file = input.files[0];
+    if (file) {
+      await processFile(file);
+    }
+    // Reset input value to allow re-uploading the same file
+    input.value = '' as any;
   }
 }
 
 async function processFile(file: File) {
+  localError.value = null;
   if (!file.name.endsWith('.csv')) {
-    importError.value = '请选择 CSV 文件';
+    localError.value = '请选择 CSV 文件';
     return;
   }
 

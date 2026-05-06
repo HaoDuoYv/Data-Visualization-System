@@ -71,7 +71,7 @@
             :key="chart.id"
             :chart="chart"
             @remove="removeChart(chart.id)"
-            @update="(patch) => updateChart(chart.id, patch)"
+            @update="(patch: any) => updateChart(chart.id, patch)"
           />
         </div>
       </div>

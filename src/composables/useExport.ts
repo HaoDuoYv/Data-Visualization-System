@@ -22,7 +22,7 @@ export function useExport() {
 
   function exportAsCSV(data: QueryResult[], filename = 'data.csv') {
     if (data.length === 0) return;
-    const cols = Object.keys(data[0]);
+    const cols = Object.keys(data[0]!);
     const header = cols.map(escapeCSVField).join(',');
     const rows = data.map(row => cols.map(col => escapeCSVField(row[col])).join(','));
     const csv = [header, ...rows].join('\n');

@@ -56,7 +56,7 @@ export function useDataTransform() {
     return Array.from(groups.entries()).map(([, rows]) => {
       const result: QueryResult = {};
       for (const col of agg.groupBy) {
-        result[col] = rows[0][col];
+        result[col] = rows[0]?.[col];
       }
       for (const { column, type } of agg.aggregations) {
         const values = rows.map(r => Number(r[column])).filter(v => !isNaN(v));
@@ -66,7 +66,7 @@ export function useDataTransform() {
           case 'count': result[column] = rows.length; break;
           case 'min': result[column] = values.length ? Math.min(...values) : 0; break;
           case 'max': result[column] = values.length ? Math.max(...values) : 0; break;
-          case 'none': result[column] = rows[0][column]; break;
+          case 'none': result[column] = rows[0]?.[column]; break;
         }
       }
       return result;

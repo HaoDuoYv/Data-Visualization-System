@@ -99,7 +99,7 @@ export class DuckDBManager {
       throw new Error('CSV content cannot be empty');
     }
 
-    if (!this.conn) {
+    if (!this.conn || !this.db) {
       throw new Error('Database not initialized. Call initialize() first.');
     }
 

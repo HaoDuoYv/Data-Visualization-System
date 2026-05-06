@@ -51,6 +51,7 @@ const resolvedConfig = computed(() => {
   if (config.xAxisColumn && config.yAxisColumn) return config;
 
   const firstRow = chartData.value[0];
+  if (!firstRow) return config;
   const keys = Object.keys(firstRow);
   const stringCol = keys.find(k => typeof firstRow[k] === 'string');
   const numericCol = keys.find(k => typeof firstRow[k] === 'number');

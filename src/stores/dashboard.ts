@@ -41,7 +41,9 @@ export const useDashboardStore = defineStore('dashboard', () => {
     if (!activeDashboard.value) return;
     const idx = activeDashboard.value.charts.findIndex(c => c.id === chartId);
     if (idx === -1) return;
-    activeDashboard.value.charts[idx] = { ...activeDashboard.value.charts[idx], ...patch };
+    const existing = activeDashboard.value.charts[idx];
+    if (!existing) return;
+    activeDashboard.value.charts[idx] = { ...existing, ...patch };
     activeDashboard.value.updatedAt = new Date().toISOString();
     saveToLocalStorage();
   }
@@ -81,8 +83,9 @@ export const useDashboardStore = defineStore('dashboard', () => {
     if (raw) {
       try {
         dashboards.value = JSON.parse(raw);
-        if (dashboards.value.length > 0 && !activeDashboardId.value) {
-          activeDashboardId.value = dashboards.value[0].id;
+        const first = dashboards.value[0];
+        if (first && !activeDashboardId.value) {
+          activeDashboardId.value = first.id;
         }
       } catch { /* ignore */ }
     }
