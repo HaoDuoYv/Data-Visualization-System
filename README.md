@@ -1,42 +1,119 @@
-# flexviz-lite
+# FlexViz Lite
 
-This template should help get you started developing with Vue 3 in Vite.
+一款浏览器端数据可视化工具，无需安装任何软件，数据完全在本地处理。
 
-## Recommended IDE Setup
+## 功能特性
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+### 数据导入
+- 支持 CSV、Excel (.xlsx)、JSON 格式
+- 拖拽上传或点击选择文件
+- Excel 多工作表选择
 
-## Recommended Browser Setup
+### 数据查询
+- **可视化查询**：无需编写 SQL，通过选择表、列、筛选条件构建查询
+- **SQL 编辑器**：直接输入 SQL 语句，支持 DuckDB 语法
+- 实时数据预览和列类型推断
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+### 图表可视化
+- 9 种图表类型：柱状图、折线图、面积图、饼图、散点图、雷达图、漏斗图、仪表盘、热力图
+- 6 种颜色主题：default、cool、warm、pastel、dark、earth
+- 自定义字体大小、图例位置、网格线、标签旋转、背景色
+- 交互功能：缩放、数值标签、动画效果
+- 数据筛选：10 种运算符，支持排序和聚合
 
-## Type Support for `.vue` Imports in TS
+### 图表增强功能
+- **图表模板**：8 种快速模板（月度趋势、Top10 排名、占比分析等）
+- **标题自动生成**：根据图表类型和列名自动建议标题
+- **图表快照/收藏**：保存当前图表配置，随时恢复
+- **派生列**：定义计算字段，如 `price * quantity`
+- **数据标注**：为特定数据点添加文字标注
+- **趋势线**：线性回归和移动平均线
+- **多图表对比**：同时查看 2-3 种图表类型
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
+### 仪表盘
+- 创建多个仪表盘，每个可添加多个图表
+- 支持 2/3/4 列固定布局
+- 自由拖拽布局，支持 1×1、2×1、1×2、2×2 四种尺寸
+- 导出为 PNG 或 PDF
 
-## Customize configuration
+### 数据导出
+- 图表导出：PNG、SVG、CSV
+- 仪表盘导出：PNG、PDF
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+## 技术栈
 
-## Project Setup
+- **前端框架**：Vue 3 + TypeScript
+- **构建工具**：Vite
+- **样式**：Tailwind CSS v4
+- **图表**：ECharts + vue-echarts
+- **数据库**：DuckDB-WASM（浏览器端 SQL 引擎）
+- **状态管理**：Pinia
+- **路由**：Vue Router
 
-```sh
+## 快速开始
+
+### 安装依赖
+
+```bash
 npm install
 ```
 
-### Compile and Hot-Reload for Development
+### 开发模式
 
-```sh
+```bash
 npm run dev
 ```
 
-### Type-Check, Compile and Minify for Production
+访问 http://localhost:5173 即可使用。
 
-```sh
+### 生产构建
+
+```bash
 npm run build
 ```
+
+## 使用指南
+
+### 1. 导入数据
+打开页面后，系统会自动初始化 DuckDB 数据库。将数据文件（CSV/Excel/JSON）拖拽到左侧边栏的上传区域，或点击选择文件。
+
+### 2. 查询数据
+- **可视化查询**：选择表和列，添加筛选条件和排序规则
+- **SQL 查询**：切换到 SQL 标签页，输入 SQL 语句，按 Ctrl+Enter 执行
+
+### 3. 创建图表
+查询结果出现后，页面下方会显示图表区域。选择图表类型、配置轴列，系统会自动生成图表。
+
+### 4. 使用仪表盘
+点击顶部导航栏的「仪表盘」按钮，创建仪表盘并添加图表。支持固定网格和自由拖拽两种布局模式。
+
+## 数据存储
+
+- 所有数据存储在浏览器的 IndexedDB 中
+- 仪表盘配置存储在 localStorage 中
+- 数据不会上传到任何服务器，完全在本地处理
+- 清除浏览器数据会导致导入的数据丢失
+
+## 项目结构
+
+```
+src/
+├── assets/           # 样式文件
+├── components/
+│   ├── Chart/        # 图表相关组件
+│   ├── Dashboard/    # 仪表盘组件
+│   ├── DataImport/   # 数据导入组件
+│   ├── Help/         # 帮助组件
+│   ├── Results/      # 查询结果组件
+│   └── SQL/          # SQL 编辑器组件
+├── composables/      # 组合式函数
+├── data/             # 静态数据
+├── plugins/          # 插件配置
+├── stores/           # Pinia 状态管理
+├── types/            # TypeScript 类型定义
+└── views/            # 页面视图
+```
+
+## 许可证
+
+MIT
