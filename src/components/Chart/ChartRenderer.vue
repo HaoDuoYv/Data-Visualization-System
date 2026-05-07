@@ -1,9 +1,12 @@
 <!-- src/components/Chart/ChartRenderer.vue -->
 <template>
-  <div class="chart-renderer bg-white rounded-lg shadow-md p-4">
-    <div v-if="!hasData" class="py-8 text-center text-gray-400">
-      <p>暂无图表数据</p>
-      <p class="text-sm mt-1">执行 SQL 查询后将在此显示图表</p>
+  <div class="chart-renderer glass-card p-4">
+    <div v-if="!hasData" class="py-12 text-center">
+      <svg class="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5a1.5 1.5 0 001.5-1.5V4.5a1.5 1.5 0 00-1.5-1.5H3.75a1.5 1.5 0 00-1.5 1.5v15a1.5 1.5 0 001.5 1.5z" />
+      </svg>
+      <p class="text-gray-400 text-sm">暂无图表数据</p>
+      <p class="text-gray-300 text-xs mt-1">执行查询后将在此显示图表</p>
     </div>
     <VChart
       v-else
@@ -28,9 +31,8 @@ const props = defineProps<{
   height?: string;
 }>();
 
-const vChartRef = ref<any>(null);
+const vChartRef = ref<InstanceType<typeof VChart> | null>(null);
 
-// 支持独立配置（仪表盘）或 store 配置
 const { chartOption: storeOption, hasData: storeHasData } = useChart();
 
 const option = computed(() => {
@@ -47,6 +49,5 @@ const hasData = computed(() => {
   return storeHasData.value;
 });
 
-// 暴露 VChart ref 给父组件（用于导出）
 defineExpose({ chartRef: vChartRef });
 </script>

@@ -1,23 +1,35 @@
 // src/composables/useExport.ts
 import type { ECharts } from 'echarts';
 import type { QueryResult } from '@/types';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 
 export function useExport() {
   function exportAsPNG(chartInstance: ECharts, filename = 'chart.png') {
-    const url = chartInstance.getDataURL({
-      type: 'png',
-      pixelRatio: 2,
-      backgroundColor: '#ffffff',
-    });
-    downloadDataURL(url, filename);
+    try {
+      const url = chartInstance.getDataURL({
+        type: 'png',
+        pixelRatio: 2,
+        backgroundColor: '#ffffff',
+      });
+      downloadDataURL(url, filename);
+    } catch (e) {
+      console.error('PNG export failed:', e);
+      alert('导出 PNG 失败');
+    }
   }
 
   function exportAsSVG(chartInstance: ECharts, filename = 'chart.svg') {
-    const url = chartInstance.getDataURL({
-      type: 'svg',
-      backgroundColor: '#ffffff',
-    });
-    downloadDataURL(url, filename);
+    try {
+      const url = chartInstance.getDataURL({
+        type: 'svg',
+        backgroundColor: '#ffffff',
+      });
+      downloadDataURL(url, filename);
+    } catch (e) {
+      console.error('SVG export failed:', e);
+      alert('导出 SVG 失败');
+    }
   }
 
   function exportAsCSV(data: QueryResult[], filename = 'data.csv') {
@@ -30,7 +42,7 @@ export function useExport() {
     downloadBlob(blob, filename);
   }
 
-  function escapeCSVField(value: any): string {
+  function escapeCSVField(value: unknown): string {
     if (value === null || value === undefined) return '';
     const str = String(value);
     if (str.includes(',') || str.includes('"') || str.includes('\n')) {
@@ -54,5 +66,33 @@ export function useExport() {
     URL.revokeObjectURL(url);
   }
 
-  return { exportAsPNG, exportAsSVG, exportAsCSV };
+  async function exportDashboardAsPNG(element: HTMLElement, filename = 'dashboard.png') {
+    try {
+      const canvas = await html2canvas(element, { scale: 2, backgroundColor: '#f3f4f6' });
+      const url = canvas.toDataURL('image/png');
+      downloadDataURL(url, filename);
+    } catch (e) {
+      console.error('Dashboard PNG export failed:', e);
+      alert('导出仪表盘 PNG 失败');
+    }
+  }
+
+  async function exportDashboardAsPDF(element: HTMLElement, filename = 'dashboard.pdf') {
+    try {
+      const canvas = await html2canvas(element, { scale: 2, backgroundColor: '#f3f4f6' });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
+        unit: 'px',
+        format: [canvas.width / 2, canvas.height / 2],
+      });
+      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width / 2, canvas.height / 2);
+      pdf.save(filename);
+    } catch (e) {
+      console.error('Dashboard PDF export failed:', e);
+      alert('导出仪表盘 PDF 失败');
+    }
+  }
+
+  return { exportAsPNG, exportAsSVG, exportAsCSV, exportDashboardAsPNG, exportDashboardAsPDF };
 }

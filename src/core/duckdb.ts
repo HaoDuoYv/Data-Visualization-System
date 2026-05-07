@@ -137,6 +137,17 @@ export class DuckDBManager {
   }
 
   /**
+   * 删除表
+   */
+  async deleteTable(tableName: string): Promise<void> {
+    if (!this.conn) {
+      throw new Error('Database not initialized. Call initialize() first.');
+    }
+    const escapedTableName = this.validateTableName(tableName);
+    await this.conn.query(`DROP TABLE IF EXISTS ${escapedTableName}`);
+  }
+
+  /**
    * 获取表的预览数据
    * @param tableName 表名
    * @param limit 限制行数

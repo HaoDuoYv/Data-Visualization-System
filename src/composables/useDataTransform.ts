@@ -1,9 +1,28 @@
 // src/composables/useDataTransform.ts
-import type { QueryResult, DataTransform, FilterRule, AggregationConfig } from '@/types';
+import type { QueryResult, DataTransform, FilterRule, AggregationConfig, DerivedColumn } from '@/types';
 
 export function useDataTransform() {
-  function applyTransforms(data: QueryResult[], transform: DataTransform): QueryResult[] {
+  function applyDerivedColumns(data: QueryResult[], derivedColumns: DerivedColumn[]): QueryResult[] {
+    if (derivedColumns.length === 0) return data;
+    return data.map(row => {
+      const newRow = { ...row };
+      for (const dc of derivedColumns) {
+        try {
+          const fn = new Function('row', `with(row) { return ${dc.expression}; }`);
+          newRow[dc.name] = fn(row);
+        } catch {
+          newRow[dc.name] = null;
+        }
+      }
+      return newRow;
+    });
+  }
+
+  function applyTransforms(data: QueryResult[], transform: DataTransform, derivedColumns?: DerivedColumn[]): QueryResult[] {
     let result = [...data];
+    if (derivedColumns && derivedColumns.length > 0) {
+      result = applyDerivedColumns(result, derivedColumns);
+    }
     result = applyFilters(result, transform.filters);
     if (transform.aggregation && transform.aggregation.groupBy.length > 0) {
       result = applyAggregation(result, transform.aggregation);
@@ -73,5 +92,5 @@ export function useDataTransform() {
     });
   }
 
-  return { applyTransforms };
+  return { applyTransforms, applyDerivedColumns };
 }

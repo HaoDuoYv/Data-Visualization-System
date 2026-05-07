@@ -46,6 +46,31 @@ export interface DataTransform {
   aggregation: AggregationConfig | null;
 }
 
+export interface ChartInteraction {
+  enableZoom: boolean;
+  showLabels: boolean;
+  enableAnimation: boolean;
+}
+
+export interface Annotation {
+  id: string;
+  xValue: string;
+  yValue: number;
+  text: string;
+  color: string;
+}
+
+export interface DerivedColumn {
+  name: string;
+  expression: string;
+}
+
+export interface TrendLineConfig {
+  enabled: boolean;
+  type: 'linear' | 'moving_average';
+  movingAverageWindow?: number;
+}
+
 export interface ChartConfig {
   type: ChartType;
   title: string;
@@ -54,6 +79,10 @@ export interface ChartConfig {
   seriesColumn?: string;
   customization: ChartCustomization;
   dataTransform: DataTransform;
+  interaction: ChartInteraction;
+  annotations: Annotation[];
+  derivedColumns: DerivedColumn[];
+  trendLine: TrendLineConfig;
 }
 
 export interface ColumnMeta {
@@ -81,6 +110,18 @@ export const DEFAULT_DATA_TRANSFORM: DataTransform = {
   aggregation: null,
 };
 
+export const DEFAULT_CHART_INTERACTION: ChartInteraction = {
+  enableZoom: false,
+  showLabels: false,
+  enableAnimation: true,
+};
+
+export const DEFAULT_TREND_LINE: TrendLineConfig = {
+  enabled: false,
+  type: 'linear',
+  movingAverageWindow: 5,
+};
+
 export const DEFAULT_CHART_CONFIG: ChartConfig = {
   type: 'bar',
   title: '',
@@ -89,6 +130,10 @@ export const DEFAULT_CHART_CONFIG: ChartConfig = {
   seriesColumn: undefined,
   customization: { ...DEFAULT_CHART_CUSTOMIZATION },
   dataTransform: { ...DEFAULT_DATA_TRANSFORM },
+  interaction: { ...DEFAULT_CHART_INTERACTION },
+  annotations: [],
+  derivedColumns: [],
+  trendLine: { ...DEFAULT_TREND_LINE },
 };
 
 export const COLOR_PALETTES: Record<ColorTheme, string[]> = {

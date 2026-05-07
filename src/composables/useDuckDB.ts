@@ -1,6 +1,8 @@
 // src/composables/useDuckDB.ts
 import { ref, readonly } from 'vue';
 import { DuckDBManager } from '@/core/duckdb';
+import { getAllCSVs, deleteCSV } from '@/core/dataStore';
+import { useDuckDBStore } from '@/stores/duckdb';
 
 // 单例模式：全局共享一个 DuckDB 实例
 const dbManager = new DuckDBManager();
@@ -18,11 +20,34 @@ export function useDuckDB() {
       error.value = null;
       await dbManager.initialize();
       isInitialized.value = true;
+      await restoreTables();
     } catch (e) {
       error.value = (e as Error).message;
       console.error('DuckDB initialization error:', e);
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  /**
+   * 从 IndexedDB 恢复所有已持久化的表
+   */
+  async function restoreTables() {
+    try {
+      const stored = await getAllCSVs();
+      const store = useDuckDBStore();
+      for (const record of stored) {
+        const result = await dbManager.createTableFromCSV(record.tableName, record.csvContent);
+        if (result) {
+          store.addTable(record.tableName);
+          store.setTableMeta(record.tableName, {
+            rowCount: result.rowCount,
+            columns: result.columns,
+          });
+        }
+      }
+    } catch (e) {
+      console.error('Restore tables error:', e);
     }
   }
 
@@ -89,6 +114,25 @@ export function useDuckDB() {
   }
 
   /**
+   * 删除表（同时删除 DuckDB 表和 IndexedDB 记录）
+   */
+  async function deleteTable(tableName: string) {
+    try {
+      isLoading.value = true;
+      error.value = null;
+      await dbManager.deleteTable(tableName);
+      await deleteCSV(tableName);
+      const store = useDuckDBStore();
+      store.removeTable(tableName);
+    } catch (e) {
+      error.value = (e as Error).message;
+      console.error('Delete table error:', e);
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  /**
    * 关闭数据库连接
    */
   async function close() {
@@ -112,5 +156,6 @@ export function useDuckDB() {
     close,
     createTableFromCSV,
     getTablePreview,
+    deleteTable,
   };
 }

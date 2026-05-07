@@ -1,7 +1,7 @@
 // src/stores/duckdb.ts
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import type { QueryResult, ChartConfig, ColumnMeta, ChartCustomization, DataTransform, FilterRule } from '@/types';
+import type { QueryResult, ChartConfig, ColumnMeta, ChartCustomization, ChartInteraction, DataTransform, FilterRule, Annotation, DerivedColumn, TrendLineConfig } from '@/types';
 import { DEFAULT_CHART_CONFIG } from '@/types';
 
 export const useDuckDBStore = defineStore('duckdb', () => {
@@ -15,6 +15,9 @@ export const useDuckDBStore = defineStore('duckdb', () => {
   const previewColumns = ref<{ name: string; type: string }[]>([]);
   const previewTableName = ref<string>('');
   const previewRowCount = ref<number>(0);
+
+  // 表元数据（每张表的行数和列信息）
+  const tableMeta = ref<Record<string, { rowCount: number; columns: { name: string; type: string }[] }>>({});
 
   // 图表配置状态
   const chartConfig = ref<ChartConfig>({ ...DEFAULT_CHART_CONFIG });
@@ -67,6 +70,11 @@ export const useDuckDBStore = defineStore('duckdb', () => {
     if (index > -1) {
       tables.value.splice(index, 1);
     }
+    delete tableMeta.value[name];
+  }
+
+  function setTableMeta(name: string, meta: { rowCount: number; columns: { name: string; type: string }[] }) {
+    tableMeta.value[name] = meta;
   }
 
   function setQueryResults(results: QueryResult[]) {
@@ -94,6 +102,13 @@ export const useDuckDBStore = defineStore('duckdb', () => {
     chartConfig.value = {
       ...chartConfig.value,
       customization: { ...chartConfig.value.customization, ...patch },
+    };
+  }
+
+  function updateChartInteraction(patch: Partial<ChartInteraction>) {
+    chartConfig.value = {
+      ...chartConfig.value,
+      interaction: { ...chartConfig.value.interaction, ...patch },
     };
   }
 
@@ -146,6 +161,56 @@ export const useDuckDBStore = defineStore('duckdb', () => {
     previewRowCount.value = 0;
   }
 
+  // 标注管理
+  function addAnnotation(annotation: Annotation) {
+    chartConfig.value = {
+      ...chartConfig.value,
+      annotations: [...chartConfig.value.annotations, annotation],
+    };
+  }
+
+  function removeAnnotation(id: string) {
+    chartConfig.value = {
+      ...chartConfig.value,
+      annotations: chartConfig.value.annotations.filter(a => a.id !== id),
+    };
+  }
+
+  function updateAnnotation(id: string, patch: Partial<Annotation>) {
+    chartConfig.value = {
+      ...chartConfig.value,
+      annotations: chartConfig.value.annotations.map(a => a.id === id ? { ...a, ...patch } : a),
+    };
+  }
+
+  // 派生列管理
+  function addDerivedColumn(col: DerivedColumn) {
+    chartConfig.value = {
+      ...chartConfig.value,
+      derivedColumns: [...chartConfig.value.derivedColumns, col],
+    };
+  }
+
+  function removeDerivedColumn(index: number) {
+    const derivedColumns = [...chartConfig.value.derivedColumns];
+    derivedColumns.splice(index, 1);
+    chartConfig.value = { ...chartConfig.value, derivedColumns };
+  }
+
+  function updateDerivedColumn(index: number, col: DerivedColumn) {
+    const derivedColumns = [...chartConfig.value.derivedColumns];
+    derivedColumns[index] = col;
+    chartConfig.value = { ...chartConfig.value, derivedColumns };
+  }
+
+  // 趋势线管理
+  function updateTrendLine(patch: Partial<TrendLineConfig>) {
+    chartConfig.value = {
+      ...chartConfig.value,
+      trendLine: { ...chartConfig.value.trendLine, ...patch },
+    };
+  }
+
   return {
     // 状态
     tables,
@@ -155,6 +220,7 @@ export const useDuckDBStore = defineStore('duckdb', () => {
     previewColumns,
     previewTableName,
     previewRowCount,
+    tableMeta,
     chartConfig,
     // 计算属性
     columns,
@@ -163,6 +229,7 @@ export const useDuckDBStore = defineStore('duckdb', () => {
     // 方法
     addTable,
     removeTable,
+    setTableMeta,
     setQueryResults,
     setCurrentQuery,
     clearResults,
@@ -171,9 +238,17 @@ export const useDuckDBStore = defineStore('duckdb', () => {
     updateChartConfig,
     resetChartConfig,
     updateChartCustomization,
+    updateChartInteraction,
     updateDataTransform,
     addFilterRule,
     removeFilterRule,
     updateFilterRule,
+    addAnnotation,
+    removeAnnotation,
+    updateAnnotation,
+    addDerivedColumn,
+    removeDerivedColumn,
+    updateDerivedColumn,
+    updateTrendLine,
   };
 });

@@ -1,7 +1,7 @@
 // src/stores/dashboard.ts
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import type { Dashboard, DashboardChart, DashboardLayout } from '@/types';
+import type { Dashboard, DashboardChart, DashboardLayout, CellPosition } from '@/types';
 import { DEFAULT_DASHBOARD_LAYOUT, DEFAULT_CHART_CONFIG } from '@/types';
 
 export const useDashboardStore = defineStore('dashboard', () => {
@@ -74,6 +74,17 @@ export const useDashboardStore = defineStore('dashboard', () => {
     activeDashboardId.value = id;
   }
 
+  function updateChartPosition(chartId: string, position: CellPosition) {
+    if (!activeDashboard.value) return;
+    const idx = activeDashboard.value.charts.findIndex(c => c.id === chartId);
+    if (idx === -1) return;
+    const existing = activeDashboard.value.charts[idx];
+    if (!existing) return;
+    activeDashboard.value.charts[idx] = { ...existing, position };
+    activeDashboard.value.updatedAt = new Date().toISOString();
+    saveToLocalStorage();
+  }
+
   function saveToLocalStorage() {
     localStorage.setItem('flexviz-dashboards', JSON.stringify(dashboards.value));
   }
@@ -93,7 +104,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
 
   return {
     dashboards, activeDashboardId, activeDashboard, chartCount,
-    createDashboard, addChart, updateChart, removeChart,
+    createDashboard, addChart, updateChart, removeChart, updateChartPosition,
     updateLayout, deleteDashboard, selectDashboard, loadFromLocalStorage,
   };
 });
