@@ -114,11 +114,43 @@
         />
       </div>
     </main>
+
+    <!-- 新建仪表盘弹窗 -->
+    <Teleport to="body">
+      <div v-if="showCreateModal" class="fixed inset-0 z-50 flex items-center justify-center">
+        <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" @click="showCreateModal = false"></div>
+        <div class="relative glass-card w-full max-w-sm mx-4 p-6">
+          <h3 class="text-base font-semibold text-gray-800 mb-4">新建仪表盘</h3>
+          <input
+            ref="createInputRef"
+            v-model="createName"
+            type="text"
+            placeholder="请输入仪表盘名称"
+            class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-400 transition-colors"
+            @keyup.enter="handleCreateConfirm"
+          />
+          <div class="flex justify-end gap-2 mt-4">
+            <button
+              @click="showCreateModal = false"
+              class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+            >
+              取消
+            </button>
+            <button
+              @click="handleCreateConfirm"
+              class="px-4 py-2 text-sm bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors cursor-pointer"
+            >
+              创建
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, nextTick } from 'vue';
 import { useDashboardStore } from '@/stores/dashboard';
 import { storeToRefs } from 'pinia';
 import DashboardToolbar from '@/components/Dashboard/DashboardToolbar.vue';
@@ -133,6 +165,9 @@ const { dashboards, activeDashboard, activeDashboardId, chartCount } = storeToRe
 const { createDashboard, selectDashboard, deleteDashboard, addChart, removeChart, updateChart, updateChartPosition, loadFromLocalStorage } = store;
 
 const showAddModal = ref(false);
+const showCreateModal = ref(false);
+const createName = ref('');
+const createInputRef = ref<HTMLInputElement>();
 
 onMounted(() => {
   loadFromLocalStorage();
@@ -154,8 +189,17 @@ function handleAddChart(event: { title: string; querySQL: string; config: { type
 }
 
 function handleCreate() {
-  const name = prompt('请输入仪表盘名称：');
-  if (name) createDashboard(name);
+  createName.value = '';
+  showCreateModal.value = true;
+  nextTick(() => createInputRef.value?.focus());
+}
+
+function handleCreateConfirm() {
+  const name = createName.value.trim();
+  if (name) {
+    createDashboard(name);
+    showCreateModal.value = false;
+  }
 }
 
 function handleDelete(id: string) {
