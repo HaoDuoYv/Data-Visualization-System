@@ -1,22 +1,6 @@
 <!-- src/views/DashboardView.vue -->
 <template>
   <div class="min-h-screen bg-surface">
-    <header class="glass-header sticky top-0 z-40">
-      <div class="flex items-center justify-between px-4 py-2.5">
-        <div class="flex items-center gap-2.5">
-          <router-link
-            to="/"
-            class="w-7 h-7 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors cursor-pointer"
-          >
-            <svg class="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
-          </router-link>
-          <h1 class="text-base font-bold text-primary-900">仪表盘</h1>
-        </div>
-      </div>
-    </header>
-
     <main class="max-w-7xl mx-auto px-4 py-4">
       <!-- 仪表盘列表 -->
       <div v-if="!activeDashboard" class="space-y-4">
